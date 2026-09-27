@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Detail</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="search.html">Search Events</a>
+    </nav>
+
+    <div class="card">
+        <h2>Event Details</h2>
+        <div id="detailContent"></div>
+        <div id="detailError" style="color:red"></div>
+        <br>
+        <button id="registerBtn">Register</button>
+        <br><br>
+        <a href="index.html">← Back to Home</a>
+    </div>
+
+<script>
+const apiUrl = "http://localhost:3000";
+const detailContent = document.getElementById("detailContent");
+const errorBox = document.getElementById("detailError");
+
+function getCharityImage(eventName){
+    const name = eventName.toLowerCase();
+    if(name.includes("concert")) return "images/event1.jpg";
+    if(name.includes("spring fun run")) return "images/event2.jpg";
+    if(name.includes("art")) return "images/event3.jpg";
+    if(name.includes("gala dinner")) return "images/event4.jpg";
+    if(name.includes("vintage")) return "images/event5.jpg";
+    if(name.includes("kids")) return "images/event6.jpg";
+    if(name.includes("christmas")) return "images/event7.jpg";
+    return "images/event1.jpg";
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+const eventId = urlParams.get("id");
+
+async function loadDetail() {
+    try{
+        const res = await fetch(`${apiUrl}/api/event/${eventId}`);
+        if(!res.ok) throw new Error("response not ok");
+        const data = await res.json();
+        errorBox.textContent = "";
+
+        const goal = Number(data.charity_goal);
+        const progress = Number(data.current_progress);
+        const percent = Math.min(100, Math.round(progress / goal * 100));
+
+        detailContent.innerHTML = `
+            <img src="${getCharityImage(data.event_name)}" style="width:100%;border-radius:8px;margin-bottom:16px;" alt="${data.event_name}">
+            <h3>${data.event_name}</h3>
+            <p>${data.event_description}</p>
+            <p><strong>Date:</strong> ${new Date(data.event_date).toLocaleDateString('en-AU')}</p>
+            <p><strong>Location:</strong> ${data.location}</p>
+            <p><strong>Ticket Price:</strong> $${data.ticket_price}</p>
+            <p><strong>Charity Goal:</strong> $${data.charity_goal}</p>
+            <div style="width:100%;background:#eee;border-radius:6px;height:22px;margin:8px 0;">
+                <div style="width:${percent}%;background:#27ae60;height:22px;border-radius:6px;"></div>
+            </div>
+            <p>Current Progress Raised: $${data.current_progress} (${percent}%)</p>
+            <p><strong>Category:</strong> ${data.category_name}</p>
+            <p><strong>Organiser:</strong> ${data.org_name}</p>
+            <p><strong>Organisation Email:</strong> ${data.contact_email}</p>
+            <p><strong>Organisation Phone:</strong> ${data.contact_phone}</p>
+        `
+        document.getElementById("registerBtn").onclick = function(){
+            alert("This feature is currently under construction.");
+        }
+    }catch(err){
+        errorBox.textContent = "Error loading event detail";
+        console.log(err);
+    }
+}
+loadDetail();
+</script>
+</body>
+</html>
