@@ -24,21 +24,33 @@
 const apiUrl = "http://localhost:3000";
 const eventList = document.getElementById("eventList");
 
+function getCharityImage(eventName){
+    const name = eventName.toLowerCase();
+    if(name.includes("concert")) return "images/event1.jpg";
+    if(name.includes("spring fun run")) return "images/event2.jpg";
+    if(name.includes("art")) return "images/event3.jpg";
+    if(name.includes("gala dinner")) return "images/event4.jpg";
+    if(name.includes("vintage")) return "images/event5.jpg";
+    if(name.includes("kids")) return "images/event6.jpg";
+    if(name.includes("christmas")) return "images/event7.jpg";
+    return "images/event1.jpg";
+}
+
 async function loadHomeEvents(){
     const res = await fetch(`${apiUrl}/api/home-events`);
     const events = await res.json();
     eventList.innerHTML = "";
     events.forEach(evt=>{
-        // 格式化澳洲日期，去掉T时间串
         const displayDate = new Date(evt.event_date).toLocaleDateString('en-AU');
         const div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
-            <h3>${evt.event_name}</h3>
+            <img src="${getCharityImage(evt.event_name)}" style="width:100%;border-radius:8px;margin-bottom:12px;" alt="${evt.event_name}">
+            <h3><a href="event-detail.html?id=${evt.event_id}">${evt.event_name}</a></h3>
             <p>${evt.event_description}</p>
             <p>Date: ${displayDate}</p>
             <p>Location: ${evt.location}</p>
-            <a href="event-detail.html?id=${evt.event_id}">View Details</a>
+            <p>Category: ${evt.category_name}</p>
         `
         eventList.appendChild(div);
     })
