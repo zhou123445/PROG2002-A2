@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Events</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="search.html">Search Events</a>
+    </nav>
+
+    <div class="card">
+        <h2>Search Charity Events</h2>
+
+        <div style="margin:10px 0;">
+            <label>Category: </label>
+            <select id="categorySelect">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+
+        <div style="margin:10px 0;">
+            <label>Location: </label>
+            <input type="text" id="locationInput" placeholder="Search location">
+        </div>
+
+        <div style="margin:10px 0;">
+            <label>Event Date: </label>
+            <input type="date" id="dateInput">
+        </div>
+
+        <button id="searchBtn">Search</button>
+        <button id="clearBtn">Clear Filters</button>
+
+        <h3>Results</h3>
+        <div id="resultList"></div>
+    </div>
+
+<script>
+const apiUrl = "http://localhost:3000";
+const categorySelect = document.getElementById("categorySelect");
+const resultList = document.getElementById("resultList");
+
+function getCharityImage(eventName){
+    const name = eventName.toLowerCase();
+    if(name.includes("concert")) return "images/event1.jpg";
+    if(name.includes("spring fun run")) return "images/event2.jpg";
+    if(name.includes("art")) return "images/event3.jpg";
+    if(name.includes("gala dinner")) return "images/event4.jpg";
+    if(name.includes("vintage")) return "images/event5.jpg";
+    if(name.includes("kids")) return "images/event6.jpg";
+    if(name.includes("christmas")) return "images/event7.jpg";
+    return "images/event1.jpg";
+}
+
+async function loadCategories() {
+    const res = await fetch(`${apiUrl}/api/categories`);
+    const categories = await res.json();
+    categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.category_id;
+        opt.textContent = cat.category_name;
+        categorySelect.appendChild(opt);
+    })
+}
+
+document.getElementById("searchBtn").addEventListener("click", async () => {
+    const categoryId = categorySelect.value;
+    const location = document.getElementById("locationInput").value;
+    const eventDate = document.getElementById("dateInput").value;
+
+    const params = new URLSearchParams();
+    if (categoryId) params.append("category_id", categoryId);
+    if (location) params.append("location", location);
+    if (eventDate) params.append("event_date", eventDate);
+
+    const res = await fetch(`${apiUrl}/api/search-events?${params.toString()}`);
+    const events = await res.json();
+
+    resultList.innerHTML = "";
+    if (events.length === 0) {
+        resultList.innerHTML = "<p>No events found.</p>";
+        return;
+    }
+
+    events.forEach(evt => {
+        const item = document.createElement("div");
+        item.className = "card";
+        item.innerHTML = `
+            <img src="${getCharityImage(evt.event_name)}" style="width:100%;border-radius:8px;margin-bottom:12px;" alt="${evt.event_name}">
+            <h3><a href="event-detail.html?id=${evt.event_id}">${evt.event_name}</a></h3>
+            <p>${evt.event_description}</p>
+            <p>Date: ${new Date(evt.event_date).toLocaleDateString('en-AU')}</p>
+            <p>Location: ${evt.location}</p>
+            <p>Category: ${evt.category_name}</p>
+        `
+        resultList.appendChild(item);
+    })
+})
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+    categorySelect.value = "";
+    document.getElementById("locationInput").value = "";
+    document.getElementById("dateInput").value = "";
+    resultList.innerHTML = "";
+})
+
+loadCategories();
+</script>
+</body>
+</html>
