@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>City Hope Charity - Home</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="search.html">Search Events</a>
+    </nav>
+
+    <div class="card">
+        <h1>City Hope Charity</h1>
+        <p>Mission: Support local vulnerable communities across the city.</p>
+        <p>Contact: info@cityhope.org | Phone: 0400111222</p>
+    </div>
+
+    <h2>Upcoming Charity Events</h2>
+    <div id="eventList"></div>
+
+<script>
+const apiUrl = "http://localhost:3000";
+const eventList = document.getElementById("eventList");
+
+async function loadHomeEvents(){
+    const res = await fetch(`${apiUrl}/api/home-events`);
+    const events = await res.json();
+    eventList.innerHTML = "";
+    events.forEach(evt=>{
+        // 格式化澳洲日期，去掉T时间串
+        const displayDate = new Date(evt.event_date).toLocaleDateString('en-AU');
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+            <h3>${evt.event_name}</h3>
+            <p>${evt.event_description}</p>
+            <p>Date: ${displayDate}</p>
+            <p>Location: ${evt.location}</p>
+            <a href="event-detail.html?id=${evt.event_id}">View Details</a>
+        `
+        eventList.appendChild(div);
+    })
+}
+loadHomeEvents();
+</script>
+</body>
+</html>
