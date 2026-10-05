@@ -3,14 +3,14 @@ const db = require('./event_db');
 const cors = require('cors');
 const app = express();
 const PORT = 3000;
-
 app.use(cors());
 app.use(express.json());
 
 // 获取首页即将到来、未封禁活动
 app.get('/api/home-events', async (req,res)=>{
     try{
-        const sql = `SELECT e.*, c.category_name, o.org_name 
+        const sql = `SELECT e.event_id, e.event_name, e.event_description, e.event_date, e.location, e.ticket_price, e.charity_goal, e.current_progress,
+                            c.category_name, o.org_name 
                     FROM events e
                     JOIN categories c ON e.category_id = c.category_id
                     JOIN charity_organisations o ON e.organisation_id = o.organisation_id
@@ -36,12 +36,13 @@ app.get('/api/categories', async(req,res)=>{
 // 多条件搜索接口
 app.get('/api/search-events', async(req,res)=>{
     try{
-        let baseSql = `SELECT e.*,c.category_name,o.org_name FROM events e
-        JOIN categories c ON e.category_id=c.category_id
-        JOIN charity_organisations o ON e.organisation_id=o.organisation_id
-        WHERE e.is_suspended = 0 `;
+        let baseSql = `SELECT e.event_id, e.event_name, e.event_description, e.event_date, e.location, e.ticket_price, e.charity_goal, e.current_progress,
+                            c.category_name, o.org_name 
+                       FROM events e
+                       JOIN categories c ON e.category_id=c.category_id
+                       JOIN charity_organisations o ON e.organisation_id=o.organisation_id
+                       WHERE e.is_suspended = 0 `;
         let params = [];
-
         if(req.query.category_id){
             baseSql += " AND e.category_id = ? ";
             params.push(req.query.category_id);
@@ -66,10 +67,12 @@ app.get('/api/search-events', async(req,res)=>{
 app.get('/api/event/:id', async(req,res)=>{
     try{
         const eventId = req.params.id;
-        const sql = `SELECT e.*,c.category_name,o.* FROM events e
-        JOIN categories c ON e.category_id=c.category_id
-        JOIN charity_organisations o ON e.organisation_id=o.organisation_id
-        WHERE e.event_id = ?`;
+        const sql = `SELECT e.event_id, e.event_name, e.event_description, e.event_date, e.location, e.ticket_price, e.charity_goal, e.current_progress,
+                            c.category_name, o.org_name, o.organisation_id
+                    FROM events e
+                    JOIN categories c ON e.category_id=c.category_id
+                    JOIN charity_organisations o ON e.organisation_id=o.organisation_id
+                    WHERE e.event_id = ? AND e.is_suspended = 0`;
         const [rows] = await db.query(sql,[eventId]);
         if(rows.length===0){
             return res.status(404).json({message:"Event not found"});
